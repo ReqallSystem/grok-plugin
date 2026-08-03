@@ -1,0 +1,30 @@
+{
+  "name": "@reqall/grok-plugin",
+  "version": "2026.8.1",
+  "description": "Reqall plugin for Grok Build — skills, hooks, and MCP for persistent semantic memory",
+  "type": "module",
+  "files": [
+    "plugin.json",
+    ".mcp.json",
+    "hooks",
+    "skills",
+    "AGENTS.md",
+    "README.md",
+    "config.toml.example",
+    "LICENSE"
+  ],
+  "keywords": [
+    "reqall",
+    "grok",
+    "grok-build",
+    "mcp",
+    "memory",
+    "ai-agent"
+  ],
+  "homepage": "https://github.com/ReqallSystem/grok-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ReqallSystem/grok-plugin.git"
+  },
+  "license": "MIT"
+}

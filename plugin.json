@@ -1,0 +1,20 @@
+{
+  "name": "reqall",
+  "version": "2026.8.1",
+  "description": "Persistent semantic knowledgebase for Grok Build agents",
+  "author": {
+    "name": "ReqallSystem"
+  },
+  "homepage": "https://github.com/ReqallSystem/grok-plugin",
+  "repository": "https://github.com/ReqallSystem/grok-plugin",
+  "license": "MIT",
+  "keywords": [
+    "rag",
+    "memory",
+    "project-context",
+    "issues",
+    "specifications",
+    "grok",
+    "grok-build"
+  ]
+}

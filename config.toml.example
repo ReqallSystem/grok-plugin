@@ -1,0 +1,8 @@
+# Manual Grok Build MCP config (when not installing via plugin marketplace).
+# Place under ~/.grok/config.toml (user) or ./.grok/config.toml (project).
+
+[mcp_servers.reqall]
+url = "https://www.reqall.net/mcp"
+# Prefer native MCP auth when prompted. If your setup needs a bearer key:
+# headers = { Authorization = "Bearer ${REQALL_API_KEY}" }
+startup_timeout_sec = 60
