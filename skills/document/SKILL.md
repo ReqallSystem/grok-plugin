@@ -5,9 +5,10 @@ description: Document a single work item by upserting a record and any related l
 
 # Document Work Item
 
-Called by a background sub-agent after a tool use to incrementally persist
-work as it happens. This is lighter-weight than the full `reqall:persist`
-skill — it documents a single tool action rather than an entire session.
+Called after meaningful tool use (PostToolUse hook nudge, or a background
+sub-agent) to incrementally persist work as it happens. This is lighter-weight
+than the full `reqall:persist` skill — it documents a single tool action
+rather than an entire session.
 
 ## When to Skip
 

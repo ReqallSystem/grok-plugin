@@ -60,7 +60,9 @@ Skip or minimize for trivial requests:
 
 ## Phase A: Automatic Context Injection
 
-Run this before editing files or running substantial commands.
+Hooks pre-retrieve context on `UserPromptSubmit` and path-focused recall on
+`PreToolUse`. Still run the full flow yourself when hooks are unavailable or
+results look thin:
 
 1. Resolve project name in this order:
    - `REQALL_PROJECT_NAME`
@@ -92,7 +94,8 @@ Skip read-only, no-op, and formatting-only actions.
 
 ## Phase B: Automatic Persistence
 
-Run this before the final user-facing answer.
+Run this before the final user-facing answer. The Grok **Stop** hook blocks
+once per non-trivial turn until persistence has been attempted.
 
 1. Enumerate distinct work items completed in the turn.
 2. For each meaningful item, call `reqall:upsert_record` with appropriate

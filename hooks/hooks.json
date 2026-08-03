@@ -1,25 +1,14 @@
 {
+  "description": "Reqall context retrieval and persistence for Grok Build.",
   "hooks": {
-    "PreToolUse": [
+    "SessionStart": [
       {
-        "matcher": "Write|Edit|NotebookEdit|search_replace",
         "hooks": [
           {
             "type": "command",
-            "command": "N=${REQALL_PROJECT_NAME:-$(git remote get-url origin 2>/dev/null | sed -E 's/.*[:/]([^/]+\\/[^/.]+?)(\\.git)?$/\\1/')}; [ -z \"$N\" ] && N=$(basename \"$(pwd)\"); FP=$(python3 -c \"import sys,json\ntry:\n d=json.load(sys.stdin)\nexcept Exception:\n d={}\nti=d.get('toolInput') or d.get('tool_input') or {}\nif not isinstance(ti, dict):\n ti={}\nprint(ti.get('file_path') or ti.get('target_file') or ti.get('notebook_path') or '')\" 2>/dev/null); [ -n \"$FP\" ] && echo \"[reqall] Before modifying $FP, call reqall:search with query=\\\"$FP\\\" and project_name=\\\"$N\\\" to check for relevant records (specs, open issues, architecture decisions). If results are found, consider them before proceeding.\" || echo \"\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|Bash|NotebookEdit|search_replace|run_terminal_command",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "N=${REQALL_PROJECT_NAME:-$(git remote get-url origin 2>/dev/null | sed -E 's/.*[:/]([^/]+\\/[^/.]+?)(\\.git)?$/\\1/')}; [ -z \"$N\" ] && N=$(basename \"$(pwd)\"); echo \"[reqall] Launch a background sub-agent to document the work just performed. The sub-agent should follow the reqall:document skill: (1) call reqall:upsert_project with name=\\\"$N\\\" to get the project_id, (2) evaluate whether the tool use was non-trivial and worth documenting, (3) if so, call reqall:search to find related existing records, (4) call reqall:upsert_record with the appropriate kind/status/title/body, (5) call reqall:upsert_link for any related records found. If the tool use was trivial (read-only, no-op, formatting-only), the sub-agent should skip and output nothing. Pass the sub-agent a concise summary of what the tool just did.\"",
-            "timeout": 10
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
+            "timeout": 20,
+            "statusMessage": "Initializing Reqall memory"
           }
         ]
       }
@@ -29,8 +18,35 @@
         "hooks": [
           {
             "type": "command",
-            "command": "N=${REQALL_PROJECT_NAME:-$(git remote get-url origin 2>/dev/null | sed -E 's/.*[:/]([^/]+\\/[^/.]+?)(\\.git)?$/\\1/')}; [ -z \"$N\" ] && N=$(basename \"$(pwd)\"); echo \"[reqall] Invoke the reqall:context skill with project_name=$N: (1) upsert the project using EXACTLY name=\\\"$N\\\", (2) search reqall for context relevant to this prompt, (3) list open records for this project. Skip impact unless the prompt involves changing existing tracked work.\"",
-            "timeout": 10
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
+            "timeout": 20,
+            "statusMessage": "Retrieving Reqall context"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|search_replace|Bash|run_terminal_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Checking Reqall path context"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|search_replace|Bash|run_terminal_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Noting work for Reqall"
           }
         ]
       }
@@ -40,8 +56,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "N=${REQALL_PROJECT_NAME:-$(git remote get-url origin 2>/dev/null | sed -E 's/.*[:/]([^/]+\\/[^/.]+?)(\\.git)?$/\\1/')}; [ -z \"$N\" ] && N=$(basename \"$(pwd)\"); echo \"<system-reminder>[reqall] MANDATORY: Before completing this turn, invoke the reqall:persist skill to classify and persist ALL work done in this session. Use project_name=\\\"$N\\\" when calling reqall:upsert_project. Create a record for each distinct work item and link related records. Do NOT skip this step.</system-reminder>\"",
-            "timeout": 10
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Verifying Reqall persistence"
           }
         ]
       }
@@ -52,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "N=${REQALL_PROJECT_NAME:-$(git remote get-url origin 2>/dev/null | sed -E 's/.*[:/]([^/]+\\/[^/.]+?)(\\.git)?$/\\1/')}; [ -z \"$N\" ] && N=$(basename \"$(pwd)\"); echo \"[reqall] A planning subagent completed. Save this plan as a spec record. Call reqall:upsert_project with name=\\\"$N\\\", then reqall:upsert_record with kind=spec, status=open, the plan title, and full plan as body.\"",
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
             "timeout": 10
           }
         ]
@@ -61,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[reqall] A subagent completed. If it produced significant work products (code changes, findings, decisions), note them for persistence at session end.\"",
+            "command": "node \"${GROK_PLUGIN_ROOT}/scripts/reqall-hook.mjs\"",
             "timeout": 10
           }
         ]

@@ -2,8 +2,9 @@
 
 Persistent semantic memory for [Grok Build](https://grok.com) agents.
 
-Automatically gathers context before prompts, classifies completed work, and
-saves plans and specifications via the Reqall MCP server.
+Automatically retrieves context before work, tracks meaningful tool use, and
+requires persistence before a non-trivial turn ends — via lifecycle hooks and
+the Reqall MCP server.
 
 ## Installation
 
@@ -46,6 +47,12 @@ in the Plugins / MCP panels, or restart Grok, so skills and the MCP server load.
 3. Optionally merge `config.toml.example` into `~/.grok/config.toml` if you
    prefer configuring MCP outside the plugin.
 
+## Requirements
+
+- **Node.js 20+** on `PATH` (hook scripts are plain Node ESM; no install step)
+- Grok Build with plugin support
+- Reqall auth: native MCP OAuth when available, or `REQALL_API_KEY`
+
 ## Setup
 
 If your Grok session supports MCP authentication, log in when prompted.
@@ -71,13 +78,20 @@ export REQALL_PROJECT_NAME="org/repo"
 
 ### Hooks
 
-| Event | Description |
-|-------|-------------|
-| `UserPromptSubmit` | Reminds the agent to run `reqall:context` for the current project |
-| `PreToolUse` | Before file edits, search Reqall for path-specific records |
-| `PostToolUse` | After meaningful tools, document the work via `reqall:document` |
-| `Stop` | Mandatory `reqall:persist` before the turn ends |
+Hooks run a cross-platform Node script (`scripts/reqall-hook.mjs`) that speaks
+Grok’s structured hook JSON (`hookSpecificOutput.additionalContext`,
+`decision: block`).
+
+| Event | Behavior |
+|-------|----------|
+| `SessionStart` | Warm the Reqall project; note autopilot is active |
+| `UserPromptSubmit` | **Retrieve context**: `upsert_project` + semantic `search` + open `list_records`, inject as additional context |
+| `PreToolUse` | Path/command-focused search before file edits and shell mutations |
+| `PostToolUse` | Mark non-trivial tool use dirty; nudge `reqall:document` / `upsert_record` |
+| `Stop` | **Once per turn**, block completion until the agent runs `reqall:persist` (when work was non-trivial) |
 | `SubagentStop` | Capture planning output as specs; note other significant results |
+
+All handlers are **fail-open**: network/auth failures never trap the agent.
 
 ### Skills
 
@@ -92,7 +106,8 @@ export REQALL_PROJECT_NAME="org/repo"
 
 Connects to `https://www.reqall.net/mcp` (HTTP) so Grok can search, create,
 and link records. Prefer native MCP auth; fall back to `REQALL_API_KEY` when
-needed.
+needed. Hooks use the same API key (or stored `reqall login` token) for
+background retrieval.
 
 ### AGENTS.md
 
@@ -104,17 +119,30 @@ the plugin package.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REQALL_API_KEY` | (optional with MCP auth) | API key for Reqall |
+| `REQALL_API_KEY` | (optional with MCP auth) | API key for Reqall (hooks + MCP) |
 | `REQALL_URL` | `https://www.reqall.net` | Reqall server URL |
 | `REQALL_PROJECT_NAME` | auto-detected | Override project name (`org/repo`) |
 
 ## Development
 
-No build step — static plugin files only.
+No build step — static plugin files + Node hook scripts.
 
 ```bash
+# Smoke-test hook handlers
+npm test
+
 # Validate with Grok when available
 grok plugin validate .
+```
+
+### Local hook smoke test
+
+```bash
+# UserPromptSubmit (requires REQALL_API_KEY for live search)
+echo '{"hookEventName":"UserPromptSubmit","prompt":"review plugin hooks","cwd":"."}' | node scripts/reqall-hook.mjs
+
+# Stop after dirty work (simulates post-edit gate)
+# First run PostToolUse to mark dirty, then Stop.
 ```
 
 ## License

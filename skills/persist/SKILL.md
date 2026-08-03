@@ -30,12 +30,14 @@ Prefix titles to aid scanning:
 
 ## Steps
 
-1. **Identify the project** — Use the project name provided by the hook
-   output (look for `project_name=...` in the hook message). If no hook
-   output is available, check the `REQALL_PROJECT_NAME` env var, then run
-   `git remote get-url origin` to extract the `org/repo` name, falling
-   back to the directory basename only if the git command fails. Call
+1. **Identify the project** — Use the project name from the Stop hook
+   message (`project_name="..."`) or earlier hook context. If none is
+   available, check `REQALL_PROJECT_NAME`, then `git remote get-url origin`
+   for `org/repo`, falling back to the directory basename. Call
    `reqall:upsert_project` with that exact name to get the `project_id`.
+
+   On Grok Build the **Stop** hook blocks once per non-trivial turn until
+   this skill (or equivalent MCP upserts) has been run.
 
 2. **Analyze the session** — Review the conversation to identify all
    distinct work items. Scan each category explicitly:

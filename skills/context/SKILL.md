@@ -45,10 +45,14 @@ Load project context from Reqall before starting work.
 - Search returns nothing: say so and proceed — the project may be new.
 - No open records: skip step 4 output.
 
-## Automatic Per-File Search
+## Automatic Hooks
 
-The PreToolUse hook instructs the agent to call `reqall:search` with the
-file path before each edit (`Write` / `Edit` / `search_replace` / Notebook
-edits). This supplements the broad search done here by surfacing
-file-specific records (specs, issues, decisions) at the moment of
-modification.
+On Grok Build, lifecycle hooks already:
+
+1. **UserPromptSubmit** — call `upsert_project` + semantic `search` + open
+   `list_records` and inject results as additional context.
+2. **PreToolUse** — path/command-focused search before file edits and
+   mutating shell commands.
+
+Use this skill when you need a deeper manual pass (impact analysis, full
+record bodies) beyond what the hooks injected.
