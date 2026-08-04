@@ -35,7 +35,7 @@ Use the bundled skills when available:
 - `reqall:persist` — persist all meaningful session outcomes
 - `reqall:triage` — classify and prioritize incoming issues or requests
 - `reqall:review` — review and update open records
-- `reqall:sleep` — run knowledge-graph maintenance
+- `reqall:sleep` — compress memory (consolidate / split / compact / skip / crosslink)
 
 The automatic flow below is still mandatory even when skills are not exposed
 by the current host.

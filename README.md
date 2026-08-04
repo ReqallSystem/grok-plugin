@@ -100,7 +100,7 @@ All handlers are **fail-open**: network/auth failures never trap the agent.
 - `reqall:persist` — Classify and persist all session work
 - `reqall:triage` — Classify incoming issues and create prioritized records
 - `reqall:review` — Interactive review of open records
-- `reqall:sleep` — Knowledge-graph maintenance
+- `reqall:sleep` — Compress memory (consolidate / split / compact / skip / crosslink)
 
 ### MCP Server
 
