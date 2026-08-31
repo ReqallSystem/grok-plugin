@@ -1,6 +1,8 @@
 {
-  "reqall": {
-    "type": "http",
-    "url": "https://www.reqall.net/mcp"
+  "mcpServers": {
+    "reqall": {
+      "type": "http",
+      "url": "https://www.reqall.net/mcp"
+    }
   }
 }
