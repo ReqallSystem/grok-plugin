@@ -50,7 +50,7 @@ export function machineProjectName(env = process.env) {
 }
 
 /**
- * Resolve project name: REQALL_PROJECT_NAME → git origin org/repo → cwd basename.
+ * Resolve project name: REQALL_PROJECT_NAME → git origin org/repo → machine project.
  */
 export function resolveProjectName(cwd = process.cwd(), env = process.env) {
   if (env.REQALL_PROJECT_NAME && env.REQALL_PROJECT_NAME.trim()) {
