@@ -153,3 +153,20 @@ describe('reqall-hook', () => {
     assert.equal(stdout.trim(), '');
   });
 });
+
+describe('machine project fallback', () => {
+  it('non-repo cwd resolves to the machine project', async () => {
+    const { resolveProjectName } = await import('../scripts/lib/project.mjs');
+    const dir = mkdtempSync(join(tmpdir(), 'reqall-nogit-'));
+    try {
+      assert.match(resolveProjectName(dir, {}), /^\.machine\/[^/]+\/[^/]+$/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('REQALL_MACHINE_NAME overrides the hostname segment', async () => {
+    const { machineProjectName } = await import('../scripts/lib/project.mjs');
+    assert.match(machineProjectName({ REQALL_MACHINE_NAME: 'CI-Box' }), /^\.machine\/ci-box\/[^/]+$/);
+  });
+});

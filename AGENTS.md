@@ -67,7 +67,8 @@ results look thin:
 1. Resolve project name in this order:
    - `REQALL_PROJECT_NAME`
    - git remote repo name as `org/repo`
-   - current directory name
+   - the machine project `.machine/<hostname>/<os-user>` (never the current
+     directory name; `REQALL_MACHINE_NAME` overrides the hostname segment)
 2. Call `reqall:upsert_project` with that exact name and store `project_id`.
 3. Call `reqall:search` using the user task as query and the project name
    as hint.

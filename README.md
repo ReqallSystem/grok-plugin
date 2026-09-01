@@ -121,6 +121,8 @@ the plugin package.
 |----------|---------|-------------|
 | `REQALL_API_KEY` | (optional with MCP auth) | API key for Reqall (hooks + MCP) |
 | `REQALL_URL` | `https://www.reqall.net` | Reqall server URL |
+| `REQALL_PROJECT_NAME` | auto-detected | Override project detection (else git `origin` org/repo, else the machine project `.machine/<hostname>/<os-user>`) |
+| `REQALL_MACHINE_NAME` | short hostname | Overrides the hostname segment of the machine project — set in CI/containers with ephemeral hostnames |
 | `REQALL_PROJECT_NAME` | auto-detected | Override project name (`org/repo`) |
 
 ## Development

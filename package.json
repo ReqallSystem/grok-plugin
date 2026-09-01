@@ -1,6 +1,6 @@
 {
   "name": "@reqall/grok-plugin",
-  "version": "2026.8.3",
+  "version": "2026.9.0",
   "description": "Reqall plugin for Grok Build — skills, hooks, and MCP for persistent semantic memory",
   "type": "module",
   "engines": {

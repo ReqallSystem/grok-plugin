@@ -33,7 +33,11 @@ Prefix titles to aid scanning:
 1. **Identify the project** — Use the project name from the Stop hook
    message (`project_name="..."`) or earlier hook context. If none is
    available, check `REQALL_PROJECT_NAME`, then `git remote get-url origin`
-   for `org/repo`, falling back to the directory basename. Call
+   for `org/repo`, or, if the git command fails, the machine
+   project `.machine/<hostname>/<os-user>` (never the directory basename).
+   Routing: account-wide preferences/conventions -> `.user`; machine-specific
+   config/fixes -> the machine project; repo-anchored work -> the repo project.
+   Call
    `reqall:upsert_project` with that exact name to get the `project_id`.
 
    On Grok Build the **Stop** hook blocks once per non-trivial turn until
