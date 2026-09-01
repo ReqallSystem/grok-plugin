@@ -30,7 +30,7 @@ Prefer clear, concise records and useful links over perfect coverage. A long but
 
 ## Steps
 
-1. **Project** — arg → `REQALL_PROJECT_NAME` → git `org/repo` → dir basename → `upsert_project` → `project_id`.
+1. **Project** — arg → `REQALL_PROJECT_NAME` → git `org/repo` → `.machine/<hostname>/<os-user>` → `upsert_project` → `project_id`.
 2. **Candidates** — `sleep_candidates(project_id)`. If rate-limited, report next eligible time and stop.
 3. **Summary** — counts: consolidate clusters, compact/skip pool, split, crosslink. Empty → "Nothing to do — graph is healthy."
 4. **Select ops** — decision table only. Prefer obvious wins; small batch is fine. Bodies: terse, non-redundant.
