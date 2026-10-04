@@ -14,7 +14,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { resolveProjectName } from './lib/project.mjs';
+import { resolveProjectName, promptProject } from './lib/project.mjs';
 import {
   formatRecall,
   listOpenRecords,
@@ -27,7 +27,7 @@ import { loadSession, markerSeen, saveSession } from './lib/state.mjs';
 const STOP_DIRECTIVE = [
   '[reqall] MANDATORY persistence before ending this turn.',
   'Invoke the reqall:persist skill (or equivalent MCP flow):',
-  '(1) reqall:upsert_project with the current project name,',
+  '(1) reqall:upsert_project with the exact host-bound project name; do not re-resolve mid-turn,',
   '(2) for each distinct meaningful work item, reqall:upsert_record with appropriate kind/status/title/body,',
   '(3) reqall:upsert_link for related records when clear,',
   '(4) reqall:list_records to verify.',
@@ -222,18 +222,11 @@ async function retrieveContext(projectName, query) {
 // ── handlers ──────────────────────────────────────────────────────────
 
 async function handleSessionStart(input) {
-  const project = resolveProjectName(input.cwd);
+  const state = loadSession(input.session_id);
+  const project = state.project || resolveProjectName(input.cwd, process.env, '', state.selectedProject);
   // Warm project; no model injection required on SessionStart.
   await upsertProject(project);
-  const state = loadSession(input.session_id);
-  saveSession(input.session_id, {
-    ...state,
-    project,
-    contextLoaded: false,
-    dirty: false,
-    mutations: 0,
-    stopBlocked: false,
-  });
+  saveSession(input.session_id, { ...state, project });
   return additionalContext(
     'SessionStart',
     `Reqall memory autopilot is active for project "${project}". On non-trivial work, retrieve context before mutations and persist outcomes before the turn ends.`,
@@ -241,10 +234,17 @@ async function handleSessionStart(input) {
 }
 
 async function handleUserPromptSubmit(input) {
-  const project = resolveProjectName(input.cwd);
   const prompt = input.prompt || '';
   const trivial = isTrivialPrompt(prompt);
   const state = loadSession(input.session_id);
+  if (/^\s*<(?:task-notification|agent-notification|subagent-notification)\b/i.test(prompt)) {
+    return additionalContext('UserPromptSubmit', `[reqall] Continue the current turn using project "${state.project || resolveProjectName(input.cwd, process.env, '', state.selectedProject)}"; retain pending persistence.`);
+  }
+  const selectedProject = promptProject(prompt) || state.selectedProject || '';
+  const project = resolveProjectName(input.cwd, process.env, prompt, selectedProject);
+  state.selectedProject = selectedProject;
+  if (state.project !== project) { state.projectId = null; state.contextLoaded = false; }
+
 
   if (trivial) {
     saveSession(input.session_id, {
@@ -290,11 +290,11 @@ async function handlePreToolUse(input) {
   const looksLikePath = /[\\/]|\.\w{1,8}$/.test(query);
   if (!mutating && !looksLikePath) return null;
 
-  const project = resolveProjectName(input.cwd);
   const state = loadSession(input.session_id);
+  const project = state.project || resolveProjectName(input.cwd, process.env, '', state.selectedProject);
 
   // Dedupe identical pre-tool queries within a session.
-  const dedupeKey = `${input.session_id}__pre__${query}`;
+  const dedupeKey = `${input.session_id}__${project}__${input.prompt_id}__pre__${query}`;
   if (input.session_id && markerSeen(dedupeKey)) {
     return null;
   }
@@ -327,7 +327,7 @@ async function handlePostToolUse(input) {
   if (!mutating) return null;
 
   const state = loadSession(input.session_id);
-  const project = state.project || resolveProjectName(input.cwd);
+  const project = state.project || resolveProjectName(input.cwd, process.env, '', state.selectedProject);
   saveSession(input.session_id, {
     ...state,
     project,
@@ -343,7 +343,8 @@ async function handlePostToolUse(input) {
 }
 
 async function handleSubagentStop(input) {
-  const project = resolveProjectName(input.cwd);
+  const state = loadSession(input.session_id);
+  const project = state.project || resolveProjectName(input.cwd, process.env, '', state.selectedProject);
   const agentType = asString(input.agent_type) || asString(input.agentType) || '';
   if (/plan/i.test(agentType)) {
     return additionalContext(
@@ -364,7 +365,7 @@ async function handleStop(input) {
   }
 
   const state = loadSession(input.session_id);
-  const project = state.project || resolveProjectName(input.cwd);
+  const project = state.project || resolveProjectName(input.cwd, process.env, '', state.selectedProject);
   const nonTrivial = state.dirty
     || state.mutations > 0
     || isNonTrivialPrompt(state.lastQuery || '');

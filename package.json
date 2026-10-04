@@ -1,6 +1,6 @@
 {
   "name": "@reqall/grok-plugin",
-  "version": "2026.9.17",
+  "version": "2026.10.4",
   "description": "Reqall plugin for Grok Build — skills, hooks, and MCP for persistent semantic memory",
   "type": "module",
   "engines": {
@@ -31,7 +31,7 @@
     "url": "https://github.com/ReqallSystem/grok-plugin.git"
   },
   "scripts": {
-    "test": "node --test test/hooks.test.js"
+    "test": "node --test test/project-policy.test.js test/hooks.test.js"
   },
   "license": "MIT"
 }

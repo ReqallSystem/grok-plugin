@@ -121,9 +121,8 @@ the plugin package.
 |----------|---------|-------------|
 | `REQALL_API_KEY` | (optional with MCP auth) | API key for Reqall (hooks + MCP) |
 | `REQALL_URL` | `https://www.reqall.net` | Reqall server URL |
-| `REQALL_PROJECT_NAME` | auto-detected | Override project detection (else git `origin` org/repo, else the machine project `.machine/<hostname>/<os-user>`) |
+| `REQALL_PROJECT_NAME` | auto-detected | Override project detection (see Project identity contract below) |
 | `REQALL_MACHINE_NAME` | short hostname | Overrides the hostname segment of the machine project — set in CI/containers with ephemeral hostnames |
-| `REQALL_PROJECT_NAME` | auto-detected | Override project name (`org/repo`) |
 
 ## Development
 
@@ -150,3 +149,9 @@ echo '{"hookEventName":"UserPromptSubmit","prompt":"review plugin hooks","cwd":"
 ## License
 
 MIT
+
+## Project identity contract
+
+Reuse the exact host-provided project identity throughout recall, work, persistence, and verification. Without a host binding, resolve: trimmed `REQALL_PROJECT_NAME` → network Git `origin` (final two path segments, trailing slash/`.git` removed) → explicitly labelled `project_name`/`project` prompt selection or retained session selection → nearest valid ancestor `.reqall.yml`/`.reqall.yaml` → nearest package identity (`package.json`, `go.mod`, `Cargo.toml` at each directory) → exact cwd-relative path within a known workspace → `.machine/<short-lower-hostname>/<os-user>`. Never infer identity from arbitrary slash tokens or an unconstrained directory basename. Labels accept `:`/`=` and plain, single/double-quoted, or backtick values; first labelled match wins, not synthetic report examples. Environment and network Git override retained selections at the next turn; mid-turn hooks reuse the bound identity. `REQALL_MACHINE_NAME` overrides the whole sanitized lowercase host segment (including deliberate dots); use the OS account, not USER/USERNAME.
+
+Read regular UTF-8 metadata files ≤64 KiB. Reqall YAML supports simple top-level string `project` (preferred) or `name`, matching quotes and trailing comments; reject duplicate keys, malformed quotes, nested/complex values, booleans/null/numbers. Package identity is string `package.json.name` (valid `@scope/name` becomes `scope/name`), complete Go `module`, or simple quoted Cargo `[package] name`. Skip invalid/unreadable values. Automatic identities allow ASCII letters/digits/`_-.` in nonempty slash segments; reject absolute/drive/UNC/backslash/tilde and `.`/`..` segments. Search ancestors through the containing workspace root inclusive, otherwise filesystem root. `REQALL_WORKSPACE_ROOT` (cwd-relative or `~/` supported), else nearest regular `.reqall-workspace`, sets the boundary; resolve symlinks before containment, do not replace an invalid explicit root with a marker, and do not use an empty root-relative identity. Preserve all relative segments. Deliberate manual SLEEP targets override automatic discovery; account preferences may deliberately target `.user`.

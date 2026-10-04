@@ -1,6 +1,6 @@
 {
   "name": "reqall",
-  "version": "2026.9.17",
+  "version": "2026.10.4",
   "description": "Persistent semantic knowledgebase for Grok Build agents",
   "author": {
     "name": "ReqallSystem"
